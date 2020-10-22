@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
 from .models import Post
 from .forms import PostForm
@@ -46,19 +46,15 @@ class PostCreateView(CreateView):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+@method_decorator(login_required, name='dispatch')
+class PostEditView(UpdateView):
+    model = Post
+    template_name = 'blog/post_edit.html'
+    context_object_name = 'post'
+    form_class = PostForm
 
-def post_new(request):
-    if request.method == "POST":
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.published_date = timezone.now()
-            post.save()
-            return redirect('post_detail', pk=post.pk)
-    else:
-        form = PostForm()
-    return render(request, 'blog/post_edit.html', {'form': form})
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.object.pk })
 
 
 def post_edit(request, pk):
