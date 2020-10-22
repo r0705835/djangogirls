@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
 from .models import Post
 from .forms import PostForm
 
@@ -18,6 +19,12 @@ class PostListView(ListView):
             published_date__lte=timezone.now()
         ).order_by('published_date')
         return queryset
+
+@method_decorator(login_required, name='dispatch')
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
 
 
 def post_detail(request, pk):
